@@ -21,25 +21,30 @@ namespace ApplicationWebPortal.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(String userName, string password, string role)
+        public IActionResult Login(string username, string password, string role)
         {
+            if (role == "Admin" || role == "HR")
+            {
+                var user = _context.AdminDetails.FirstOrDefault(u =>
+                    u.Username == username && u.Password == password && u.Role == role);
+
+                if (user != null)
+                {
+                    return RedirectToAction("Dashboard", "Admin");
+                }
+
+                ViewBag.Error = $"Invalid {role} credentials";
+                return View("Login");
+            }
+
             if (role == "Candidate")
             {
-                TempData["CandidateUsername"] = userName;
                 return RedirectToAction("CandidateStep1", "Candidate");
             }
 
-            // For Admin or HR, validate using DB  
-            var user = _context.AdminDetails
-               .FirstOrDefault(u => u.Username == userName && u.Password == password && u.Role == role);
-
-            if (user == null)
-            {
-                ViewBag.Error = "Invalid credentials";
-                return View("Index");
-            }
-
-            return RedirectToAction("AdminDashboard", "Admin");
+            ViewBag.Error = "Invalid role selected.";
+            return View("Login");
         }
+
     }
 }
