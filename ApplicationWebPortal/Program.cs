@@ -1,7 +1,14 @@
+using ApplicationWebPortal.Models; // Fix: Use the correct namespace for AppDbContext
+using Microsoft.EntityFrameworkCore;
+using DL_JobApplicationWebPortal.DL_Model; // Fix: Use the correct namespace for AppDbContext
+using System;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<AppDbContext>(options =>
+  options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
 
 var app = builder.Build();
 
@@ -22,6 +29,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Login}/{id?}");
 
 app.Run();

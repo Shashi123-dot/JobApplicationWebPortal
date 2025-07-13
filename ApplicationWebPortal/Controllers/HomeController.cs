@@ -1,32 +1,45 @@
-using System.Diagnostics;
 using ApplicationWebPortal.Models;
 using Microsoft.AspNetCore.Mvc;
-
+using DL_JobApplicationWebPortal.DL_Model; // Ensure this namespace is correct for AppDbContext
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Diagnostics;
 namespace ApplicationWebPortal.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly AppDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(AppDbContext context)
         {
-            _logger = logger;
+            _context = context;
         }
-
-        public IActionResult Index()
+        [HttpGet]
+        public IActionResult Login()
         {
             return View();
         }
 
-        public IActionResult Privacy()
+        [HttpPost]
+        public IActionResult Login(String userName, string password, string role)
         {
-            return View();
-        }
+            if (role == "Candidate")
+            {
+                TempData["CandidateUsername"] = userName;
+                return RedirectToAction("CandidateStep1", "Candidate");
+            }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // For Admin or HR, validate using DB  
+            var user = _context.AdminDetails
+               .FirstOrDefault(u => u.Username == userName && u.Password == password && u.Role == role);
+
+            if (user == null)
+            {
+                ViewBag.Error = "Invalid credentials";
+                return View("Index");
+            }
+
+            return RedirectToAction("AdminDashboard", "Admin");
         }
     }
 }
